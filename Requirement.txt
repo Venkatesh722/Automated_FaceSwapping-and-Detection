@@ -1,0 +1,6 @@
+PIL
+dlib
+opencv
+numpy
+keras
+tensorflow
