@@ -39,6 +39,7 @@ for face in faces:
 
 
 
+
     points = np.array(landmarks_points, np.int32)
     convexhull = cv2.convexHull(points)
     # cv2.polylines(img, [convexhull], True, (255, 0, 0), 3)
