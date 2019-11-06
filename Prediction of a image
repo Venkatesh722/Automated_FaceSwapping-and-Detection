@@ -1,0 +1,75 @@
+#from keras.preprocessing.image import ImageDataGenerator 
+#from keras.models import Sequential 
+#from keras.layers import Conv2D, MaxPooling2D 
+#from keras.layers import Activation, Dropout, Flatten, Dense 
+#from keras import backend as K 
+
+
+from keras.models import model_from_json
+import cv2
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+import numpy as np
+import sys
+import dlib
+
+import warnings
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+
+json_file = open('model_face.json', 'r')
+loaded_model_json = json_file.read()                                                                                                                                  
+json_file.close()
+loaded_model = model_from_json(loaded_model_json)
+# load weights into new model
+loaded_model.load_weights("model_saved.h5")
+y = []
+image = cv2.imread("swap5.jpg")
+image2 = cv2.imread("swap5.jpg")
+image3 = cv2.resize(image2, (400, 400))
+image = cv2.resize(image, (224, 224))
+image = image.astype("float") / 255.0
+image = img_to_array(image)
+image = np.expand_dims(image, axis=0)
+y = loaded_model.predict_classes(image)
+
+
+if (y[0][0] == 1):
+	print("\n--------------------The image is manipulated--------------")
+	detector = dlib.get_frontal_face_detector()
+	predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+	img_gray = cv2.cvtColor(image3,cv2.COLOR_BGR2GRAY)
+	faces = detector(img_gray)
+	for face in faces:
+		landmarks = predictor(img_gray,face)
+		landmarks_points = []
+		prev_x = landmarks.part(0).x
+		prev_y = landmarks.part(0).y
+		for n in range(1, 17):
+			x = landmarks.part(n).x
+			y = landmarks.part(n).y
+			#cv2.imwrite(path + 'pillar_text.jpg', im)
+			landmarks_points.append((x, y))
+			#cv2.circle(image3, (x, y), 3, (0, 255, 0), -1)
+			cv2.line(image3,(prev_x,prev_y),(x,y),(0, 255, 0),2)
+			prev_x = x
+			prev_y = y
+		prev_x = landmarks.part(17).x
+		prev_y = landmarks.part(17).y
+		for n in range(17, 27):
+			x = landmarks.part(n).x
+			y = landmarks.part(n).y
+			landmarks_points.append((x, y))
+			#cv2.circle(image3, (x, y), 3, (0, 255, 0), -1)
+			cv2.line(image3,(prev_x,prev_y),(x,y),(0, 255, 0),2)
+			prev_x = x
+			prev_y = y
+		cv2.line(image3,(landmarks.part(0).x,landmarks.part(0).y),(landmarks.part(17).x,landmarks.part(17).y),(0, 255, 0),2)
+		cv2.line(image3,(landmarks.part(16).x,landmarks.part(16).y),(landmarks.part(26).x,landmarks.part(26).y),(0, 255, 0),2)
+
+	cv2.imshow("Image 1", image3)
+	cv2.waitKey()
+
+
+else:
+	print("\n--------------------The image is not manipulated--------------")
+
